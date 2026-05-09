@@ -1,0 +1,30 @@
+# IDE
+.idea/
+.vscode/
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Logs
+*.log
+
+# Private dev docs (not committed)
+docs/dev/
+
+# AI settings
+.claude/
+
+# Test artifacts
+*.test
+*.out
+coverage.txt
+
+# Temporary files
+tmp/
+
+# OS specific
+.DS_Store
+Thumbs.db
