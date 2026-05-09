@@ -40,9 +40,9 @@ Part of the [gogpu GPU computing ecosystem](https://github.com/gogpu) (~800K+ LO
 
 ## Status
 
-🚧 **Under development** — API is not stable yet.
+Windows audio output working (WASAPI). macOS and Linux drivers planned.
 
-## Planned Architecture
+## Architecture
 
 ```
 User Code
@@ -50,17 +50,17 @@ User Code
     ▼
 audio.Context (singleton, manages audio device)
     │
-    ├── Decoder (WAV/OGG → PCM)
+    ├── WAV Decoder (Pure Go)
     ├── Mixer (multi-channel, volume control)
-    │
+    │       ↑ ReadFloat32er (pull model)
     ▼
-Platform Driver (PCM → hardware)
-    ├── WASAPI (Windows)
-    ├── CoreAudio (macOS)
-    └── PulseAudio (Linux)
+Platform Driver (background goroutine → hardware)
+    ├── WASAPI (Windows) ✅ — COM vtable via syscall.SyscallN
+    ├── CoreAudio (macOS) — planned
+    └── PulseAudio (Linux) — planned
 ```
 
-## Planned API
+## API
 
 ```go
 package audio
@@ -82,9 +82,9 @@ player.Play()
 
 | Platform | Driver | Status |
 |----------|--------|--------|
-| Windows | WASAPI (COM) | Planned |
-| macOS | CoreAudio (AudioUnit via goffi) | Planned |
-| Linux | PulseAudio (native protocol, Pure Go) | Planned |
+| Windows | WASAPI (COM vtable via syscall) | ✅ Working |
+| macOS | CoreAudio (AudioQueue via goffi) | Planned |
+| Linux | PulseAudio (libpulse-simple via dlopen) | Planned |
 
 ## Ecosystem
 

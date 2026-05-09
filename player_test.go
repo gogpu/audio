@@ -8,7 +8,7 @@ import (
 )
 
 func TestPlayer_InitialState(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -26,7 +26,7 @@ func TestPlayer_InitialState(t *testing.T) {
 }
 
 func TestPlayer_PlayPauseResume(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -55,7 +55,7 @@ func TestPlayer_PlayPauseResume(t *testing.T) {
 }
 
 func TestPlayer_Stop(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -78,7 +78,7 @@ func TestPlayer_Stop(t *testing.T) {
 }
 
 func TestPlayer_PauseWithoutPlay(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -95,7 +95,7 @@ func TestPlayer_PauseWithoutPlay(t *testing.T) {
 }
 
 func TestPlayer_ResumeWithoutPause(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -127,7 +127,7 @@ func TestPlayer_SetVolume(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx, err := NewContext()
+			ctx, err := NewContext(nullDriver())
 			if err != nil {
 				t.Fatalf("NewContext: %v", err)
 			}
@@ -146,7 +146,7 @@ func TestPlayer_SetVolume(t *testing.T) {
 }
 
 func TestPlayer_ReadSamples(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -171,7 +171,7 @@ func TestPlayer_ReadSamples(t *testing.T) {
 }
 
 func TestPlayer_ReadSamples_EOF(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -196,7 +196,7 @@ func TestPlayer_ReadSamples_EOF(t *testing.T) {
 }
 
 func TestPlayer_ReadSamples_Stopped(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}

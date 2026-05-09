@@ -8,12 +8,13 @@ import (
 	"encoding/binary"
 	"errors"
 	"math"
-	"sync"
 	"testing"
 )
 
+func nullDriver() Option { return WithDriver(&NullDriver{}) }
+
 func TestNewContext_Defaults(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -29,6 +30,7 @@ func TestNewContext_Defaults(t *testing.T) {
 
 func TestNewContext_WithOptions(t *testing.T) {
 	ctx, err := NewContext(
+		nullDriver(),
 		WithSampleRate(48000),
 		WithChannels(1),
 	)
@@ -48,6 +50,7 @@ func TestNewContext_WithOptions(t *testing.T) {
 func TestNewContext_InvalidOptions(t *testing.T) {
 	// Zero or negative values should be ignored, keeping defaults
 	ctx, err := NewContext(
+		nullDriver(),
 		WithSampleRate(0),
 		WithChannels(-1),
 	)
@@ -86,7 +89,7 @@ func TestNewContext_DriverOpenError(t *testing.T) {
 }
 
 func TestContext_DoubleClose(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -101,7 +104,7 @@ func TestContext_DoubleClose(t *testing.T) {
 }
 
 func TestContext_NewPlayer(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -115,7 +118,7 @@ func TestContext_NewPlayer(t *testing.T) {
 }
 
 func TestContext_PlayWAV(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -136,7 +139,7 @@ func TestContext_PlayWAV(t *testing.T) {
 }
 
 func TestContext_PlayWAV_InvalidData(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -148,33 +151,31 @@ func TestContext_PlayWAV_InvalidData(t *testing.T) {
 	}
 }
 
-// recordingDriver records Open/Write/Close calls for verification.
+// recordingDriver records Open/Start/Close calls for verification.
 type recordingDriver struct {
-	mu      sync.Mutex
 	opened  bool
+	started bool
 	closed  bool
-	written [][]float32
+	source  ReadFloat32er
 }
 
-func (d *recordingDriver) Open(sampleRate, channels int) error {
-	d.mu.Lock()
-	defer d.mu.Unlock()
+func (d *recordingDriver) Open(_, _, _ int) error {
 	d.opened = true
 	return nil
 }
 
-func (d *recordingDriver) Write(samples []float32) (int, error) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	cp := make([]float32, len(samples))
-	copy(cp, samples)
-	d.written = append(d.written, cp)
-	return len(samples), nil
+func (d *recordingDriver) SetSource(src ReadFloat32er) {
+	d.source = src
 }
 
+func (d *recordingDriver) Start() error {
+	d.started = true
+	return nil
+}
+
+func (d *recordingDriver) Stop() error { return nil }
+
 func (d *recordingDriver) Close() error {
-	d.mu.Lock()
-	defer d.mu.Unlock()
 	d.closed = true
 	return nil
 }
@@ -184,11 +185,11 @@ type failDriver struct {
 	openErr error
 }
 
-func (d *failDriver) Open(sampleRate, channels int) error { return d.openErr }
-func (d *failDriver) Write(samples []float32) (int, error) {
-	return 0, errors.New("not opened")
-}
-func (d *failDriver) Close() error { return nil }
+func (d *failDriver) Open(_, _, _ int) error    { return d.openErr }
+func (d *failDriver) SetSource(_ ReadFloat32er) {}
+func (d *failDriver) Start() error              { return nil }
+func (d *failDriver) Stop() error               { return nil }
+func (d *failDriver) Close() error              { return nil }
 
 // makePCMReader creates an io.Reader that produces float32 PCM bytes.
 func makePCMReader(samples []float32) *bytes.Reader {
