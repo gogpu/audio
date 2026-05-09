@@ -9,7 +9,7 @@ import (
 )
 
 func TestMixer_SingleSource(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -32,7 +32,7 @@ func TestMixer_SingleSource(t *testing.T) {
 }
 
 func TestMixer_TwoSources(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -59,7 +59,7 @@ func TestMixer_TwoSources(t *testing.T) {
 }
 
 func TestMixer_PerSourceVolume(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -82,7 +82,7 @@ func TestMixer_PerSourceVolume(t *testing.T) {
 }
 
 func TestMixer_MasterVolume(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -105,7 +105,7 @@ func TestMixer_MasterVolume(t *testing.T) {
 }
 
 func TestMixer_Clamping(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -138,7 +138,7 @@ func TestMixer_Clamping(t *testing.T) {
 }
 
 func TestMixer_PausedSourceSkipped(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -164,7 +164,7 @@ func TestMixer_PausedSourceSkipped(t *testing.T) {
 }
 
 func TestMixer_StoppedSourceSkipped(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -188,7 +188,7 @@ func TestMixer_StoppedSourceSkipped(t *testing.T) {
 }
 
 func TestMixer_RemoveSource(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -217,7 +217,7 @@ func TestMixer_RemoveSource(t *testing.T) {
 }
 
 func TestMixer_RemoveNonexistent(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}
@@ -269,7 +269,7 @@ func TestMixer_EmptyMix(t *testing.T) {
 }
 
 func TestMixer_NotPlayingSourceSkipped(t *testing.T) {
-	ctx, err := NewContext()
+	ctx, err := NewContext(nullDriver())
 	if err != nil {
 		t.Fatalf("NewContext: %v", err)
 	}

@@ -88,6 +88,17 @@ linters:
           - dupl
           - gocognit
 
+      # WASAPI COM interop: unsafe.Pointer and integer conversions are
+      # inherent to syscall-based COM vtable calls (zero-CGO pattern).
+      - path: internal/wasapi/com\.go
+        linters:
+          - gosec
+          - errcheck
+
+      - path: internal/wasapi/driver\.go
+        linters:
+          - gosec
+
       - path: examples?/.*\.go
         linters:
           - errcheck

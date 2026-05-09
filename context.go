@@ -9,6 +9,8 @@ import (
 	"sync"
 )
 
+const defaultBufferSizeMs = 20
+
 const (
 	defaultSampleRate = 44100
 	defaultChannels   = 2
@@ -17,6 +19,10 @@ const (
 // Context manages audio output for an application. It owns the platform
 // audio device and coordinates player lifecycle and mixing. Typically
 // one Context exists per application.
+//
+// The driver uses a pull model: a background goroutine inside the driver
+// reads PCM data from the Mixer via ReadFloat32s and feeds it to the
+// hardware. Context.Start starts the driver; Context.Close stops it.
 type Context struct {
 	mu         sync.Mutex
 	sampleRate int
@@ -25,8 +31,6 @@ type Context struct {
 	mixer      *Mixer
 	players    []*Player
 	running    bool
-	stopCh     chan struct{}
-	mixBuf     []float32
 }
 
 // Option configures the audio context during construction.
@@ -58,13 +62,14 @@ func WithDriver(d Driver) Option {
 	}
 }
 
-// NewContext creates an audio context and opens the audio device.
+// NewContext creates an audio context, opens the audio device, and starts
+// playback. The driver pulls audio data from the internal Mixer, which
+// sums all active players.
 func NewContext(opts ...Option) (*Context, error) {
 	c := &Context{
 		sampleRate: defaultSampleRate,
 		channels:   defaultChannels,
 		mixer:      NewMixer(),
-		stopCh:     make(chan struct{}),
 	}
 
 	for _, opt := range opts {
@@ -72,25 +77,27 @@ func NewContext(opts ...Option) (*Context, error) {
 	}
 
 	if c.driver == nil {
-		c.driver = &NullDriver{}
+		c.driver = defaultDriver()
 	}
 
-	if err := c.driver.Open(c.sampleRate, c.channels); err != nil {
+	if err := c.driver.Open(c.sampleRate, c.channels, defaultBufferSizeMs); err != nil {
 		return nil, errors.New("audio: failed to open driver: " + err.Error())
 	}
 
-	// Buffer holds one callback worth of samples.
-	// 2048 frames * channels = common low-latency buffer size.
-	const framesPerBuffer = 2048
-	c.mixBuf = make([]float32, framesPerBuffer*c.channels)
+	// Wire the mixer as the driver's audio source.
+	c.driver.SetSource(c.mixer)
+
+	if err := c.driver.Start(); err != nil {
+		// Clean up on start failure.
+		_ = c.driver.Close() // best-effort
+		return nil, errors.New("audio: failed to start driver: " + err.Error())
+	}
 
 	c.running = true
-	go c.outputLoop()
-
 	return c, nil
 }
 
-// Close stops the audio output loop and releases the audio device.
+// Close stops the driver and releases the audio device.
 func (c *Context) Close() error {
 	c.mu.Lock()
 	if !c.running {
@@ -99,8 +106,6 @@ func (c *Context) Close() error {
 	}
 	c.running = false
 	c.mu.Unlock()
-
-	close(c.stopCh)
 
 	return c.driver.Close()
 }
@@ -143,24 +148,4 @@ func (c *Context) SampleRate() int {
 // Channels returns the context's configured channel count.
 func (c *Context) Channels() int {
 	return c.channels
-}
-
-// outputLoop runs in a goroutine, continuously mixing active players
-// and writing the result to the driver.
-func (c *Context) outputLoop() {
-	for {
-		select {
-		case <-c.stopCh:
-			return
-		default:
-		}
-
-		c.mixer.Mix(c.mixBuf)
-
-		if _, err := c.driver.Write(c.mixBuf); err != nil {
-			// Driver write failed -- stop the loop.
-			// In production drivers, this typically means the device was lost.
-			return
-		}
-	}
 }

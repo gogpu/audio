@@ -110,3 +110,10 @@ func (m *Mixer) MasterVolume() float64 {
 	defer m.mu.Unlock()
 	return m.master
 }
+
+// ReadFloat32s fills buf with mixed audio from all active sources.
+// It implements ReadFloat32er so the Mixer can be used as a Driver source.
+func (m *Mixer) ReadFloat32s(buf []float32) (int, error) {
+	m.Mix(buf)
+	return len(buf), nil
+}
