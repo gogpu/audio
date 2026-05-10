@@ -78,6 +78,16 @@ player, err := ctx.NewPlayer(pcmReader)
 player.Play()
 ```
 
+## Examples
+
+```bash
+# Play 440Hz sine wave
+go run ./examples/play_wav
+
+# Play Mozart's "Eine Kleine Nachtmusik" (Casio watch style)
+go run ./examples/mozart
+```
+
 ## Platform Support
 
 | Platform | Driver | Status |
