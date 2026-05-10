@@ -84,7 +84,7 @@ player.Play()
 # Play 440Hz sine wave
 go run ./examples/play_wav
 
-# Play Mozart's "Eine Kleine Nachtmusik" (Casio watch style)
+# Play Mozart's "Eine Kleine Nachtmusik" (Citizen watch style)
 go run ./examples/mozart
 ```
 

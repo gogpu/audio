@@ -1,4 +1,4 @@
-// Example: Mozart's "Eine Kleine Nachtmusik" K.525 — Casio watch style.
+// Example: Mozart's "Eine Kleine Nachtmusik" K.525 — Citizen watch style.
 //
 // Pure Go WASAPI audio engine, zero CGO.
 //
@@ -40,7 +40,7 @@ type note struct {
 
 func main() {
 	fmt.Println("♪ Mozart — Eine Kleine Nachtmusik")
-	fmt.Println("  Casio watch style · Pure Go WASAPI")
+	fmt.Println("  Citizen watch style · Pure Go WASAPI")
 	fmt.Println()
 
 	bpm := 138.0
