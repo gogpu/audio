@@ -52,34 +52,48 @@ func DecodeWAV(data []byte) (*WAVDecoder, error) {
 	var foundFmt, foundData bool
 	offset := 12
 
-	for offset+8 <= len(data) {
+	// Keep offset arithmetic bounded by the input length. In particular, a
+	// chunk size is attacker-controlled uint32 data and must not be converted
+	// to int until it has been bounded by the bytes that remain in data. A
+	// direct uint32-to-int conversion wraps on 32-bit platforms for sizes above
+	// MaxInt, which can otherwise produce invalid slice bounds below.
+	for offset <= len(data)-8 {
 		chunkID := string(data[offset : offset+4])
-		chunkSize := int(binary.LittleEndian.Uint32(data[offset+4 : offset+8]))
+		declaredChunkSize := binary.LittleEndian.Uint32(data[offset+4 : offset+8])
 		chunkDataStart := offset + 8
 
-		if chunkDataStart+chunkSize > len(data) {
-			// Truncated chunk -- use what we have
-			chunkSize = len(data) - chunkDataStart
+		// A truncated chunk uses all bytes available, preserving the decoder's
+		// existing behavior while keeping the conversion to int safe on 32-bit
+		// systems.
+		remaining := len(data) - chunkDataStart
+		chunkSize := remaining
+		if uint64(declaredChunkSize) < uint64(uint(remaining)) {
+			chunkSize = int(declaredChunkSize)
 		}
+		chunkDataEnd := chunkDataStart + chunkSize
 
 		switch chunkID {
 		case "fmt ":
-			if err := d.parseFmtChunk(data[chunkDataStart : chunkDataStart+chunkSize]); err != nil {
+			if err := d.parseFmtChunk(data[chunkDataStart:chunkDataEnd]); err != nil {
 				return nil, err
 			}
 			foundFmt = true
 
 		case "data":
 			d.dataStart = chunkDataStart
-			d.dataEnd = chunkDataStart + chunkSize
+			d.dataEnd = chunkDataEnd
 			d.pos = 0
 			foundData = true
 		}
 
 		// Advance to next chunk (chunks are word-aligned)
-		offset = chunkDataStart + chunkSize
+		offset = chunkDataEnd
 		if chunkSize%2 != 0 {
-			offset++
+			// A missing pad byte at EOF is tolerated just like other truncated
+			// chunks; avoid advancing beyond the representable input range.
+			if offset < len(data) {
+				offset++
+			}
 		}
 	}
 

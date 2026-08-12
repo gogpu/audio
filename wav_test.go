@@ -263,8 +263,8 @@ func TestDecodeWAV_UnknownChunksSkipped(t *testing.T) {
 	binary.LittleEndian.PutUint16(pcm[2:4], 0x2000)
 
 	fmtSize := 16
-	unknownPayload := []byte{0x01, 0x02, 0x03, 0x04}
-	unknownChunkSize := 8 + len(unknownPayload)
+	unknownPayload := []byte{0x01, 0x02, 0x03}
+	unknownChunkSize := 8 + len(unknownPayload) + 1 // odd chunks have one pad byte
 	dataSize := len(pcm)
 	totalSize := 4 + (8 + fmtSize) + unknownChunkSize + (8 + dataSize)
 
@@ -287,6 +287,7 @@ func TestDecodeWAV_UnknownChunksSkipped(t *testing.T) {
 	buf.WriteString("JUNK")
 	writeLEUint32(&buf, uint32(len(unknownPayload)))
 	buf.Write(unknownPayload)
+	buf.WriteByte(0) // word-alignment padding is not part of the declared size
 
 	// data chunk
 	buf.WriteString("data")
@@ -302,6 +303,50 @@ func TestDecodeWAV_UnknownChunksSkipped(t *testing.T) {
 	if len(samples) != 2 {
 		t.Errorf("got %d samples, want 2", len(samples))
 	}
+}
+
+func TestDecodeWAV_OversizedFmtChunkDoesNotPanic(t *testing.T) {
+	// The chunk size is uint32 on disk. On 32-bit systems, converting
+	// 0xffffffff directly to int yields -1 and used to produce a reversed
+	// slice bound for this fmt chunk.
+	var buf bytes.Buffer
+	buf.WriteString("RIFF")
+	writeLEUint32(&buf, 4+8)
+	buf.WriteString("WAVE")
+	buf.WriteString("fmt ")
+	writeLEUint32(&buf, math.MaxUint32)
+
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			t.Fatalf("DecodeWAV panicked for oversized chunk: %v", recovered)
+		}
+	}()
+
+	_, err := DecodeWAV(buf.Bytes())
+	if err == nil {
+		t.Fatal("DecodeWAV accepted a truncated fmt chunk")
+	}
+}
+
+func TestDecodeWAV_OversizedDataChunkUsesAvailableBytes(t *testing.T) {
+	pcm := []byte{0x00, 0x40} // one +0.5 16-bit PCM sample
+	wav := buildWAV(wavFormatPCM, 1, 44100, 16, pcm)
+
+	// The data chunk starts after the 12-byte RIFF header and 24-byte fmt
+	// chunk. Keep the payload intact but claim the maximum uint32 size.
+	const dataSizeOffset = 40
+	binary.LittleEndian.PutUint32(wav[dataSizeOffset:dataSizeOffset+4], math.MaxUint32)
+
+	dec, err := DecodeWAV(wav)
+	if err != nil {
+		t.Fatalf("DecodeWAV: %v", err)
+	}
+
+	samples := readAllSamples(t, dec)
+	if len(samples) != 1 {
+		t.Fatalf("got %d samples, want one available sample", len(samples))
+	}
+	assertNear(t, "sample[0]", samples[0], 0.5, 1e-4)
 }
 
 func TestDecodeWAV_Errors(t *testing.T) {
