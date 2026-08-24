@@ -113,6 +113,16 @@ For simple UI feedback sounds (button clicks, notifications), use [`gogpu/sound`
 
 `gogpu/audio` is for games, media apps, and audio visualization that need full PCM playback, mixing, and streaming.
 
+## Star History
+
+<a href="https://starhistory.io">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.starhistory.io/png?repos=gogpu/audio&style=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.starhistory.io/png?repos=gogpu/audio&style=professional" />
+   <img alt="Star History Chart" src="https://api.starhistory.io/png?repos=gogpu/audio" width="800" />
+ </picture>
+</a>
+
 ## License
 
 MIT License — see [LICENSE](LICENSE).
