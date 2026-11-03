@@ -1,13 +1,22 @@
-# audio — GoGPU Ecosystem
+# audio
 
-> Part of the GoGPU Pure Go GPU Computing Ecosystem.
+> audio is a Pure Go audio output library for the GoGPU ecosystem: PCM playback, a WAV decoder, a multi-channel mixer with per-player volume, and io.Reader-based streams, with playback on a background goroutine so it never blocks rendering. A Context (NewContext) owns the device; Context.PlayWAV plays WAV data and Context.NewPlayer plays any PCM io.Reader. Platform drivers: WASAPI on Windows works today. On macOS and Linux the default driver is a silent null driver; CoreAudio and PulseAudio drivers are planned. Zero CGO, Go 1.25+. Early and pre-1.0: the API may change.
 
 ## Docs
 
-- [API Reference](https://pkg.go.dev/github.com/gogpu/audio)
-- [AGENTS.md](https://github.com/gogpu/audio/blob/main/AGENTS.md): AI agent instructions
+- [API reference](https://pkg.go.dev/github.com/gogpu/audio): Context, Player, Mixer, WAV decoding, Driver
+- [README](https://github.com/gogpu/audio/blob/main/README.md): features, architecture, status
+- [AGENTS.md](https://github.com/gogpu/audio/blob/main/AGENTS.md): instructions for AI agents using audio
+- [CHANGELOG](https://github.com/gogpu/audio/blob/main/CHANGELOG.md)
+- [ROADMAP](https://github.com/gogpu/audio/blob/main/ROADMAP.md)
+
+## Examples
+
+- [play_wav](https://github.com/gogpu/audio/tree/main/examples/play_wav): plays a generated sine wave
+- [mozart](https://github.com/gogpu/audio/tree/main/examples/mozart): plays a short melody (Eine Kleine Nachtmusik) through WASAPI
 
 ## Ecosystem
 
-- [GoGPU Ecosystem](https://github.com/gogpu/gogpu/blob/main/AGENTS.md): Full ecosystem map
-- [Open Collective](https://opencollective.com/gogpu)
+- [GoGPU on GitHub](https://github.com/gogpu): all modules
+- [gogpu](https://pkg.go.dev/github.com/gogpu/gogpu): the app framework (its UI sounds are separate and use system APIs)
+- [Open Collective](https://opencollective.com/gogpu): support development
