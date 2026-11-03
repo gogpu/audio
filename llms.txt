@@ -17,6 +17,6 @@
 
 ## Ecosystem
 
-- [GoGPU on GitHub](https://github.com/gogpu): all modules
+- [GoGPU ecosystem](https://gogpu.dev/llms.txt): map of all modules
 - [gogpu](https://pkg.go.dev/github.com/gogpu/gogpu): the app framework (its UI sounds are separate and use system APIs)
 - [Open Collective](https://opencollective.com/gogpu): support development
